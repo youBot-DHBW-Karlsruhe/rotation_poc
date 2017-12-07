@@ -3,7 +3,7 @@ import urllib.request
 import numpy as np
 
 
-def get_image(colored):
+def get_image(colored=True):
     req = urllib.request.urlopen('http://192.168.0.27:8888/out.jpg')
     arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
 
