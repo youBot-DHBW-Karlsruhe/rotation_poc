@@ -8,16 +8,24 @@ def get_object_rotation_in_scene(image_object, image_scene, show=False):
 
     angle_object = get_contour_angle_on_image(contour_object, image_object, False)
 
+    matching_ranking = {}
     for index in range(len(contours_scene)):
         contour_scene = contours_scene[index]
         if len(contour_scene) > 200:
             matching = cv2.matchShapes(contour_scene, contour_object, 1, 0.0)
-            if matching < 0.2:
-                print("Contour Length:", len(contour_scene))
-                print("Matching:", matching)
-                cv2.drawContours(image_scene, contours_scene, index, (0, 255, 255), 3)
-                angle_in_scene = get_contour_angle_on_image(contour_scene, image_scene, True)
-                print("Angle difference", angle_in_scene - angle_object)
+            if matching < 0.7:
+                matching_ranking[index] = matching
+
+    # Get contour with best matching
+    index = min(matching_ranking, key=matching_ranking.get)
+    contour_scene = contours_scene[index]
+
+    # Show best result
+    print("Contour Length:", len(contour_scene))
+    print("Matching:", matching_ranking[index])
+    cv2.drawContours(image_scene, contours_scene, index, (0, 255, 255), 3)
+    angle_in_scene = get_contour_angle_on_image(contour_scene, image_scene, True)
+    print("Angle difference", angle_in_scene - angle_object)
 
 
 def get_contour_angle_on_image(contour, image, show_line=False):
@@ -80,8 +88,8 @@ def show_image(image):
 
 
 if __name__ == "__main__":
-    image_scene_pico = cv2.imread('power3.png')
+    image_scene_pico = cv2.imread('power1.png')
     image_power_bank = cv2.imread('power_origin2.png')
-    show_image(image_scene_pico)
+    # show_image(image_scene_pico)
 
-    get_object_rotation_in_scene(image_power_bank, image_scene_pico, show=True)
+    get_object_rotation_in_scene(image_power_bank, image_scene_pico, show=False)
