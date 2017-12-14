@@ -2,22 +2,22 @@ import cv2
 import numpy as np
 
 
-def get_object_rotation_in_scene(image_object, image_scene):
-    contours_scene = find_contours(prepare_image(image_scene))
-    contour_object = find_contours(prepare_image(image_object))[0]
+def get_object_rotation_in_scene(image_object, image_scene, show=False):
+    contours_scene = find_contours(prepare_image(image_scene, show), show)
+    contour_object = find_contours(prepare_image(image_object, show), show)[0]
 
     angle_object = get_contour_angle_on_image(contour_object, image_object, False)
 
     for index in range(len(contours_scene)):
         contour_scene = contours_scene[index]
-        if len(contour_scene) > 0:
+        if len(contour_scene) > 200:
             matching = cv2.matchShapes(contour_scene, contour_object, 1, 0.0)
-            if matching < 0.3:
+            if matching < 0.2:
+                print("Contour Length:", len(contour_scene))
                 print("Matching:", matching)
                 cv2.drawContours(image_scene, contours_scene, index, (0, 255, 255), 3)
                 angle_in_scene = get_contour_angle_on_image(contour_scene, image_scene, True)
                 print("Angle difference", angle_in_scene - angle_object)
-                show_image(image_scene)
 
 
 def get_contour_angle_on_image(contour, image, show_line=False):
@@ -49,16 +49,25 @@ def get_contour_line_on_image(contour, image):
     return x1, y1, x2, y2
 
 
-def prepare_image(image):
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def prepare_image(image, show=False):
+    # image_gray = cv2.morphologyEx(image_gray, 1, None)
+    gradient = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
+    image_gray = cv2.cvtColor(gradient, cv2.COLOR_BGR2GRAY)
+    if show:
+        show_image(image_gray)
     ret, thresh = cv2.threshold(image_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    show_image(thresh)
-    return thresh
+    if show:
+        show_image(thresh)
+    return image_gray
 
 
-def find_contours(image):
+def find_contours(image, show=False):
     contours = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
     contours.sort(key=len, reverse=True)
+    if show:
+        image_show = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+        cv2.drawContours(image_show, contours, -1, (0, 255, 255), 3)
+        show_image(image_show)
     return contours
 
 
@@ -71,7 +80,8 @@ def show_image(image):
 
 
 if __name__ == "__main__":
-    image_scene = cv2.imread('power1.png')
-    image_object = cv2.imread('power_origin2.png')
+    image_scene_pico = cv2.imread('power3.png')
+    image_power_bank = cv2.imread('power_origin2.png')
+    show_image(image_scene_pico)
 
-    get_object_rotation_in_scene(image_object, image_scene)
+    get_object_rotation_in_scene(image_power_bank, image_scene_pico, show=True)
