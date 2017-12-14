@@ -2,36 +2,51 @@ import cv2
 import numpy as np
 
 
-def get_rotation(image_scene, image_object):
-    show_image(image_scene)
-
+def get_object_rotation_in_scene(image_object, image_scene):
     contours_scene = find_contours(prepare_image(image_scene))
     contour_object = find_contours(prepare_image(image_object))[0]
 
-    draw_line(contour_object, image_object)
+    angle_object = get_contour_angle_on_image(contour_object, image_object, False)
 
     for index in range(len(contours_scene)):
         contour_scene = contours_scene[index]
         if len(contour_scene) > 0:
             matching = cv2.matchShapes(contour_scene, contour_object, 1, 0.0)
             if matching < 0.3:
-                print(matching)
-                draw_line(contour_scene, image_scene)
+                print("Matching:", matching)
                 cv2.drawContours(image_scene, contours_scene, index, (0, 255, 255), 3)
+                angle_in_scene = get_contour_angle_on_image(contour_scene, image_scene, True)
+                print("Angle difference", angle_in_scene - angle_object)
                 show_image(image_scene)
 
-                # cnt = contours[0]
-                # M = cv2.moments(cnt)
-                # print(M)
+
+def get_contour_angle_on_image(contour, image, show_line=False):
+    x1, y1, x2, y2 = get_contour_line_on_image(contour, image)
+    angle_rad = np.arctan((y2 - y1) / (x2 - x1))
+    angle_deg = angle_rad * 180 / np.pi + 90
+
+    if show_line:
+        draw_line(image, x1, y1, x2, y2)
+
+    return angle_deg
 
 
-def draw_line(contour, image):
+def draw_line(image, x1, y1, x2, y2):
+    cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    show_image(image)
+
+
+def get_contour_line_on_image(contour, image):
     rows, cols = image.shape[:2]
     [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
-    lefty = int((-x * vy / vx) + y)
-    righty = int(((cols - x) * vy / vx) + y)
-    cv2.line(image, (cols - 1, righty), (0, lefty), (0, 255, 0), 2)
-    show_image(image)
+    # First point
+    x1 = 0
+    y1 = int((-x * vy / vx) + y)
+    # Second point
+    x2 = cols - 1
+    y2 = int(((cols - x) * vy / vx) + y)
+
+    return x1, y1, x2, y2
 
 
 def prepare_image(image):
@@ -56,7 +71,7 @@ def show_image(image):
 
 
 if __name__ == "__main__":
-    image_scene = cv2.imread('power1.png')[140:, :]
+    image_scene = cv2.imread('power1.png')
     image_object = cv2.imread('power_origin2.png')
 
-    get_rotation(image_scene, image_object)
+    get_object_rotation_in_scene(image_object, image_scene)
