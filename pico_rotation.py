@@ -17,13 +17,16 @@ def get_rotation():
 
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv2.drawContours(im, contours, -1, (0, 255, 255), 3)
+    contours.sort(key=len, reverse=True)
+    for index in range(len(contours)):
+        if len(contours[index]) > 100:
+            cv2.drawContours(im, contours, index, (0, 255, 255), 3)
+            show_image(im)
 
-    cnt = contours[0]
-    M = cv2.moments(cnt)
-    print(M)
+    # cnt = contours[0]
+    # M = cv2.moments(cnt)
+    # print(M)
 
-    show_image(im)
 
 
 def show_image(image):
