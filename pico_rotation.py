@@ -58,29 +58,42 @@ def get_contour_line_on_image(contour, image):
 
 
 def prepare_image(image, show=False):
-    # image_gray = cv2.morphologyEx(image_gray, 1, None)
-    gradient = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
-    image_gray = cv2.cvtColor(gradient, cv2.COLOR_BGR2GRAY)
     if show:
+        print("Grey 1")
+        show_image(image)
+
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    if show:
+        print("Grey 1")
         show_image(image_gray)
-    ret, thresh = cv2.threshold(image_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+
+    morph_size = 3
+    element = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    image_gray = cv2.morphologyEx(image_gray, cv2.MORPH_OPEN, element)
+    image_gray = cv2.morphologyEx(image_gray, cv2.MORPH_CLOSE, element)
+
+    ret, thresh = cv2.threshold(image_gray, 128, 255, cv2.THRESH_BINARY_INV)
     if show:
+        print("Threshold 1")
         show_image(thresh)
-    return image_gray
+
+    return thresh
 
 
 def find_contours(image, show=False):
-    contours = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
+    contours = cv2.findContours(image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[1]
     contours.sort(key=len, reverse=True)
     if show:
         image_show = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         cv2.drawContours(image_show, contours, -1, (0, 255, 255), 3)
+        print("Showing Contours")
         show_image(image_show)
     return contours
 
 
-def show_image(image):
-    cv2.imshow('Stream', image)
+def show_image(image, title="Stream"):
+    cv2.imshow(title, image)
 
     while True:
         if cv2.waitKey(1) & 0xFF == 27:
@@ -88,8 +101,8 @@ def show_image(image):
 
 
 if __name__ == "__main__":
-    image_scene_pico = cv2.imread('power1.png')
-    image_power_bank = cv2.imread('power_origin2.png')
+    image_scene_pico = cv2.imread('Powerbank_scene.png')
+    image_power_bank = cv2.imread('Powerbank.png')
     # show_image(image_scene_pico)
 
-    get_object_rotation_in_scene(image_power_bank, image_scene_pico, show=False)
+    get_object_rotation_in_scene(image_power_bank, image_scene_pico, show=True)

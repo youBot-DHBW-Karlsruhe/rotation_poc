@@ -7,8 +7,8 @@ while True:
 
     # load the detector Haar cascade, then detect cat faces
     # in the input image
-    detector = cv2.CascadeClassifier("haarcascade_frontalcatface.xml")
-    cat_faces = detector.detectMultiScale(image_gray, scaleFactor=1.05, minNeighbors=7, minSize=(15, 15))
+    detector = cv2.CascadeClassifier("haarcascade_duplo3.xml")
+    cat_faces = detector.detectMultiScale(image_gray, scaleFactor=1.05, minNeighbors=0, minSize=(10, 20))
 
     # loop over the cat faces and draw a rectangle surrounding each
     for (i, (x, y, w, h)) in enumerate(cat_faces):
